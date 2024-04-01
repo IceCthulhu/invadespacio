@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+from dlcjuego import Music
 
 # Inicializar Pygame
 pygame.init()
@@ -9,7 +10,13 @@ pygame.init()
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Ejemplo de sprites")
+pygame.display.set_caption("Invadespacios")
+
+# Crear instancias de los administradores de puntaje y música
+music_manager = Music()
+
+# Inicializar música de fondo
+music_manager.play_background_music()
 
 # Definir color de fondo
 BG_COLOR = (0, 0, 0)
@@ -51,12 +58,14 @@ class Sprite(pygame.sprite.Sprite):
 
 # Clase para representar un enemigo
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, color, scale, x, y):
+    def __init__(self, color, scale, x, y, speed):
         super().__init__()
         self.image = self.create_sprite(color, scale)
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
+        self.speed = speed
+        self.direction = 1  # Dirección inicial (1: derecha, -1: izquierda)
 
     def create_sprite(self, color, scale):
         sprite_design = [
@@ -77,6 +86,13 @@ class Enemy(pygame.sprite.Sprite):
                     pygame.draw.rect(sprite_surface, color, (x * scale, y * scale, scale, scale))
 
         return sprite_surface
+
+    def update(self):
+        self.rect.x += self.speed * self.direction  # Mover en la dirección actual
+        if self.rect.right >= SCREEN_WIDTH or self.rect.left <= 0:  # Cambiar de dirección al llegar a los bordes
+            self.direction *= -1
+            self.rect.y += 50
+            self.speed+=1
 
 # Clase para representar un proyectil
 class Projectile(pygame.sprite.Sprite):
@@ -99,11 +115,12 @@ all_sprites = pygame.sprite.Group()
 enemies = pygame.sprite.Group()  # Grupo para los enemigos
 
 # Crear enemigos y agregarlos al grupo
-EN_total = 8  # Número total de enemigos
+EN_total = 24 # Número total de enemigos
 for i in range(EN_total):
     COL_ran = (random.randint(1, 256), random.randint(1, 256), random.randint(1, 256))
-    x = SCREEN_WIDTH / (EN_total / 1.5) + (i * 70)
-    enemy = Enemy(COL_ran, 10, x, 85)  # Color aleatorio y escala de 10
+    x = SCREEN_WIDTH / (EN_total / 1.5) + (i * 36)
+    enemy_speed = 2  # Velocidad aleatoria para cada enemigo
+    enemy = Enemy(COL_ran, 5, x, 85, enemy_speed)  # Color aleatorio, escala de 10, altura fija, velocidad variable
     all_sprites.add(enemy)
     enemies.add(enemy)
 
